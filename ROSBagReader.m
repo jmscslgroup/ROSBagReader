@@ -3,6 +3,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
     % Maintainer Email: rahulbhadani@email.arizona.edu
     % License: MIT License 
     % Copyright 2019-2020 Rahul Bhadani
+    % Initial Date: Sept 12, 2019
     % Permission is hereby granted, free of charge, to any person obtaining 
     % a copy of this software and associated documentation files 
     % (the "Software"), to deal in the Software without restriction, including
@@ -39,7 +40,6 @@ classdef ROSBagReader < matlab.mixin.Copyable
         availableTopics;
         numMessages;
         messageType;
-        scan_select;
         datafolder;
     end
     
@@ -103,24 +103,24 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 fprintf('\nReading the Laser Scan messages on the topic %s\n\n', topic_to_read);
                 
                 % Select object that selects particular topic from rosbag object
-                 obj.scan_select = select(obj.bagReader, 'Topic', topic_to_read);
+                 scan_select = select(obj.bagReader, 'Topic', topic_to_read);
 
                 % Save all messages from this topic in an struct format
-                msgStructs = readMessages(obj.scan_select,'DataFormat','struct');
+                msgStructs = readMessages(scan_select,'DataFormat','struct');
                 
                 % since ROS topic names contain slashes, we will replace
                 % every slash with a dash. This topic name will be used to
                 % create the mat file, meaning mat file that saves message
                 % has same name as the corresponding topic
                 
-                topic_to_save = strrep(topic_to_read,'/','-');
+                topic_to_save = strrep(topic_to_read(2:end),'/','-');
                 
                 % Now save the retrieved data in the datafolder
                 matfile = strcat(obj.datafolder, topic_to_save,'.mat');
                 
                 save(matfile,'msgStructs');
 
-                fprintf('Writing Laser Scan Data  to file %s from topic %s completed!!', matfile, topic_to_read);
+                fprintf('Writing Laser Scan Data  to file %s from topic %s completed!!\n\n', matfile, topic_to_read);
 
                                 
                 num_messages = num_msgs(i);
@@ -147,10 +147,68 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 writematrix(Data,csvfile,'Delimiter',',');
                 
                 fprintf('Writing Laser Scan Data  to file %s from topic %s completed!!\n\n', csvfile, topic_to_read);
-               
                 
             end
-        end
+            
+        end % end of extractLaserData
+        
+        % Function to extract  Velocity Data and save in the file where
+        % rosbag file is located
+        function extractVelData(obj)
+            
+            % Note down the index of twist messages from table topic
+            % Note that there can be multiple topics of
+            % geometry_msgs/Twist type. extractLaserData function
+            % retrieves all such topics of type geometry_msgs/Twist
+            index_twist = obj.messageType == 'geometry_msgs/Twist';
+            
+            % find all the topics of type geometry_msgs/Twist
+            topic_of_twist = obj.availableTopics(index_twist);
+            if(isempty(topic_of_twist))
+                fprintf('\nNo velocity messages found.\n\n');
+                return;
+            end
+            num_msgs = obj.numMessages(index_twist);
+            % Now we will iterate over all the topics and retrieve data
+            % from every topic of message typegeometry_msgs/Twist
+            % and save them in mat format as well as csv format
+            for i = 1:length(topic_of_twist)
+                topic_to_read = topic_of_twist{i};
+                fprintf('\nReading the Velocity messages on the topic %s\n\n', topic_to_read);
+                
+                % Select object that selects particular topic from rosbag object
+                 twist_select = select(obj.bagReader, 'Topic', topic_to_read);
+
+                % Save messages in timeseries format
+                velData = timeseries(twist_select);
+                
+                % since ROS topic names contain slashes, we will replace
+                % every slash with a dash. This topic name will be used to
+                % create the mat file, meaning mat file that saves message
+                % has same name as the corresponding topic
+                
+                topic_to_save = strrep(topic_to_read(2:end),'/','-');
+                
+                % Now save the retrieved data in the datafolder
+                matfile = strcat(obj.datafolder, topic_to_save,'.mat');
+                
+                save(matfile,'velData');
+
+                fprintf('Writing Velocity Data  to file %s from topic %s completed!!\n\n', matfile, topic_to_read);
+
+                Data = [velData.Time, velData.Data];
+                
+                 % Now save the retrieved data in the datafolder in csv
+                 % format
+                csvfile = strcat(obj.datafolder, topic_to_save,'.csv');
+                writematrix(Data,csvfile,'Delimiter',',');
+                
+                 fprintf('Writing Velocity Data  to file %s from topic %s completed!!\n\n', csvfile, topic_to_read);
+                
+            end
+            
+        end % end of extractVelData
+        
     end % end of methods
     
             
