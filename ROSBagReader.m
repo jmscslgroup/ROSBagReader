@@ -94,24 +94,17 @@ classdef ROSBagReader < matlab.mixin.Copyable
             
             % find all the topics of type sensor_msgs/LaserScan
             topic_of_scan = obj.availableTopics(index_scan);
-            
+            num_msgs = obj.numMessages(index_scan);
             % Now we will iterate over all the topics and retrieve data
             % from every topic of message type sensor_msgs/LaserScan
             % and save them in mat format as well as csv format
             for i = 1:length(topic_of_scan)
-                topic_to_read = topic_of_scan{1};
+                topic_to_read = topic_of_scan{i};
                 fprintf('\nReading the Laser Scan messages on the topic %s\n\n', topic_to_read);
                 
                 % Select object that selects particular topic from rosbag object
-                scan_select = select(obj.bagReader, 'Topic', topic_to_read);
-                obj.scan_select = scan_select;
-                
-                % Start time of the message
-                startTime = scan_select.StartTime;
-                
-                % End time of the message
-                endTime = scan_select.EndTime;
-                
+                 obj.scan_select = select(obj.bagReader, 'Topic', topic_to_read);
+
                 % Save all messages from this topic in an struct format
                 msgStructs = readMessages(obj.scan_select,'DataFormat','struct');
                 
@@ -123,8 +116,39 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 topic_to_save = strrep(topic_to_read,'/','-');
                 
                 % Now save the retrieved data in the datafolder
-                save(strcat(obj.datafolder, topic_to_save,'.mat'),'msgStructs');
+                matfile = strcat(obj.datafolder, topic_to_save,'.mat');
+                
+                save(matfile,'msgStructs');
 
+                fprintf('Writing Laser Scan Data  to file %s from topic %s completed!!', matfile, topic_to_read);
+
+                                
+                num_messages = num_msgs(i);
+                
+                Data = zeros(num_messages, length(msgStructs{1}.Ranges) + 1);
+                
+                for i = 1:num_messages
+                    
+                    tempLen = length(msgStructs{i}.Ranges);
+                    % TODO: How to node hardcode 181.
+                    % We are doing this because for a particular timestep,
+                    % there are less than 181 datapoints
+                    if(tempLen < 181)
+                         NaNPOSTFIX = zeros( 181 - tempLen, 1)*NaN;
+                         msgStructs{i}.Ranges = [msgStructs{i}.Ranges; NaNPOSTFIX];
+                    end
+                    
+                    secondtime = double(msgStructs{i}.Header.Stamp.Sec)+double(msgStructs{i}.Header.Stamp.Nsec)*10^-9;
+                    Data(i, 1) = secondtime;
+                    Data(i, 2:end) = msgStructs{i}.Ranges;
+                end
+                
+                csvfile = strcat(obj.datafolder, topic_to_save,'.csv');
+                writematrix(Data,csvfile,'Delimiter',',');
+                
+                fprintf('Writing Laser Scan Data  to file %s from topic %s completed!!\n\n', csvfile, topic_to_read);
+               
+                
             end
         end
     end % end of methods
