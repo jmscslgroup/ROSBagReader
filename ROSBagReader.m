@@ -111,8 +111,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 % since ROS topic names contain slashes, we will replace
                 % every slash with a dash. This topic name will be used to
                 % create the mat file, meaning mat file that saves message
-                % has same name as the corresponding topic
-                
+                % has same name as the corresponding topic         
                 topic_to_save = strrep(topic_to_read(2:end),'/','-');
                 
                 % Now save the retrieved data in the datafolder
@@ -168,7 +167,6 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 fprintf('\nNo velocity messages found.\n\n');
                 return;
             end
-            num_msgs = obj.numMessages(index_twist);
             % Now we will iterate over all the topics and retrieve data
             % from every topic of message typegeometry_msgs/Twist
             % and save them in mat format as well as csv format
@@ -185,8 +183,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 % since ROS topic names contain slashes, we will replace
                 % every slash with a dash. This topic name will be used to
                 % create the mat file, meaning mat file that saves message
-                % has same name as the corresponding topic
-                
+                % has same name as the corresponding topic           
                 topic_to_save = strrep(topic_to_read(2:end),'/','-');
                 
                 % Now save the retrieved data in the datafolder
@@ -208,6 +205,58 @@ classdef ROSBagReader < matlab.mixin.Copyable
             end
             
         end % end of extractVelData
+        
+        % Function to extract  Camera Compressed Images and save in the file where
+        % rosbag file is located
+        function extractCompressedImages(obj)
+            
+            % Note down the index of laserscan messages from table topic
+            % Note that there can be multiple topics of
+            %  sensor_msgs/CompressedImage type. extractCompressedImages function
+            % retrieves all such topics of type  sensor_msgs/CompressedImage
+            index_scan = obj.messageType == ' sensor_msgs/CompressedImage';
+            
+            % find all the topics of type sensor_msgs/LaserScan
+            topic_of_scan = obj.availableTopics(index_scan);
+            num_msgs = obj.numMessages(index_scan);
+            % Now we will iterate over all the topics and retrieve data
+            % from every topic of message type  sensor_msgs/CompressedImage
+            % and save them in mat format as well as csv format
+            for i = 1:length(topic_of_scan)
+                topic_to_read = topic_of_scan{i};
+                fprintf('\nReading the Compressed Image messages on the topic %s\n\n', topic_to_read);
+                
+                % Select object that selects particular topic from rosbag object
+                scan_select = select(obj.bagReader, 'Topic', topic_to_read);
+
+                % Retrieve messages from this topic in an struct format
+                msgStructs = readMessages(scan_select);
+                msgStructs{1}.Header.Stamp.Sec
+                % since ROS topic names contain slashes, we will replace
+                % every slash with a dash. This topic name will be used to
+                % create the mat file, meaning mat file that saves message
+                % has same name as the corresponding topic             
+                topic_to_save = strrep(topic_to_read(2:end),'/','-');
+                
+                figurefolder  = strcat(obj.datafolder,'/',topic_to_save) ;
+                [~, ~, msgID] =  mkdir(figurefolder);
+                if( strcmp(msgID, 'MATLAB:MKDIR:DirectoryExists') )
+                    fprintf('\nFolder %s already exists.\n\n', figurefolder);
+                end
+                                
+                num_messages = num_msgs(i);
+                                
+                for i = 1:num_messages
+                    secondtime = double(msgStructs{i}.Header.Stamp.Sec)+double(msgStructs{i}.Header.Stamp.Nsec)*10^-9;
+                    image = readImage(msgStructs{i});
+                    imwrite(image, strcat(figurefolder, '/', string(secondtime) , '.png'));
+                end
+                
+                fprintf('Compressed Image extraction  to the folder %s from topic %s completed!!\n\n', figurefolder, topic_to_read);
+                                
+            end
+            
+        end % end of extractCompressedImages
         
     end % end of methods
     

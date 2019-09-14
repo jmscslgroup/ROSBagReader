@@ -10,4 +10,4 @@ B.extractLaserData();
 B.extractVelData();
 
 % Extract Camera Data
-%B.extractCameraFrames();
+B.extractCompressedImages();
