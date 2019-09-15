@@ -168,7 +168,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 return;
             end
             % Now we will iterate over all the topics and retrieve data
-            % from every topic of message typegeometry_msgs/Twist
+            % from every topic of message type geometry_msgs/Twist
             % and save them in mat format as well as csv format
             for i = 1:length(topic_of_twist)
                 topic_to_read = topic_of_twist{i};
@@ -257,6 +257,121 @@ classdef ROSBagReader < matlab.mixin.Copyable
             end
             
         end % end of extractCompressedImages
+        
+        
+        % Function to extract  Odometry Data and save in the file where
+        % rosbag file is located
+        function Data = extractOdometryData(obj)
+            
+            % Note down the index of twist messages from table topic
+            % Note that there can be multiple topics of
+            % nav_msgs/Odometry  type. extractOdometryData function
+            % retrieves all such topics of type nav_msgs/Odometry 
+            index_odom= obj.messageType == 'nav_msgs/Odometry';
+            num_msgs = obj.numMessages(index_odom);
+            % find all the topics of type nav_msgs/Odometry 
+            topic_of_odom = obj.availableTopics(index_odom);
+            if(isempty(topic_of_odom))
+                fprintf('\nNo velocity messages found.\n\n');
+                return;
+            end
+            % Now we will iterate over all the topics and retrieve data
+            % from every topic of message type nav_msgs/Odometry
+            % and save them in mat format as well as csv format
+            Data = [];
+            for i = 1:length(topic_of_odom)
+                topic_to_read = topic_of_odom{i};
+                fprintf('\nReading the Odometry messages on the topic %s\n\n', topic_to_read);
+                
+                % Select object that selects particular topic from rosbag object
+                odom_select = select(obj.bagReader, 'Topic', topic_to_read);
+                
+                % since ROS topic names contain slashes, we will replace
+                % every slash with a dash. This topic name will be used to
+                % create the mat file, meaning mat file that saves message
+                % has same name as the corresponding topic           
+                topic_to_save = strrep(topic_to_read(2:end),'/','-');
+                
+                msgStructs = readMessages(odom_select);
+                
+                % Now save the retrieved data in the datafolder
+                matfile = strcat(obj.datafolder, topic_to_save,'.mat');
+                
+                save(matfile,'msgStructs');
+
+                fprintf('Writing Odometry Data  to file %s from topic %s completed!!\n\n', matfile, topic_to_read);
+                
+                num_messages = num_msgs(i);
+
+                %%%%%%%%
+                i = 1;
+                secondtime = double(msgStructs{i}.Header.Stamp.Sec)+double(msgStructs{i}.Header.Stamp.Nsec)*10^-9;
+                sequence = msgStructs{i}.Header.Seq;
+                frameId = string(msgStructs{i}.Header.FrameId);
+                childFrameId = string(msgStructs{i}.ChildFrameId);
+                PoseX = msgStructs{i}.Pose.Pose.Position.X;
+                PoseY = msgStructs{i}.Pose.Pose.Position.Y;
+                PoseZ = msgStructs{i}.Pose.Pose.Position.Z;
+                OrientationX =msgStructs{i}.Pose.Pose.Orientation.X;
+                OrientationY = msgStructs{i}.Pose.Pose.Orientation.Y;
+                OrientationZ = msgStructs{i}.Pose.Pose.Orientation.Z;
+                OrientationW = msgStructs{i}.Pose.Pose.Orientation.W;
+                LinearX = msgStructs{i}.Twist.Twist.Linear.X;
+                LinearY = msgStructs{i}.Twist.Twist.Linear.Y;
+                LinearZ = msgStructs{i}.Twist.Twist.Linear.Z;
+                AngularX = msgStructs{i}.Twist.Twist.Angular.X;
+                AngularY = msgStructs{i}.Twist.Twist.Angular.Y;
+                AngularZ = msgStructs{i}.Twist.Twist.Angular.Z;
+
+                PoseCov = msgStructs{i}.Pose.Covariance;
+                TwistCov =msgStructs{i}.Twist.Covariance;
+                
+                num_columns = length(secondtime) + length(sequence) + length(frameId) + length(childFrameId) + ...
+                    length(PoseX) + length(PoseY) + length(PoseZ) + length(OrientationX) + length(OrientationY) + ...
+                    length(OrientationZ) + length(OrientationW) + length(LinearX) + length(LinearY) + ...
+                    length(LinearZ) + length(AngularX) + length(AngularY) + length(AngularZ) + ...
+                    length(PoseCov) + length(TwistCov);
+                    
+                Data = string(zeros(num_messages, num_columns));
+                for i = 1:num_messages
+                    
+                    secondtime = double(msgStructs{i}.Header.Stamp.Sec)+double(msgStructs{i}.Header.Stamp.Nsec)*10^-9;
+                    sequence = msgStructs{i}.Header.Seq;
+                    frameId = string(msgStructs{i}.Header.FrameId);
+                    childFrameId = string(msgStructs{i}.ChildFrameId);
+                    PoseX = msgStructs{i}.Pose.Pose.Position.X;
+                    PoseY = msgStructs{i}.Pose.Pose.Position.Y;
+                    PoseZ = msgStructs{i}.Pose.Pose.Position.Z;
+                    OrientationX =msgStructs{i}.Pose.Pose.Orientation.X;
+                    OrientationY = msgStructs{i}.Pose.Pose.Orientation.Y;
+                    OrientationZ = msgStructs{i}.Pose.Pose.Orientation.Z;
+                    OrientationW = msgStructs{i}.Pose.Pose.Orientation.W;
+                    LinearX = msgStructs{i}.Twist.Twist.Linear.X;
+                    LinearY = msgStructs{i}.Twist.Twist.Linear.Y;
+                    LinearZ = msgStructs{i}.Twist.Twist.Linear.Z;
+                    AngularX = msgStructs{i}.Twist.Twist.Angular.X;
+                    AngularY = msgStructs{i}.Twist.Twist.Angular.Y;
+                    AngularZ = msgStructs{i}.Twist.Twist.Angular.Z;
+                    
+                    PoseCov = transpose(msgStructs{i}.Pose.Covariance);
+                    TwistCov =transpose(msgStructs{i}.Twist.Covariance);
+                    
+                    Data(i, :) = [secondtime, sequence, frameId, childFrameId, PoseX,PoseY, PoseZ, ...
+                        OrientationX, OrientationY, OrientationZ, OrientationW, LinearX, LinearY, LinearZ,...
+                        AngularX, AngularY, AngularZ, PoseCov, TwistCov];
+                end
+                
+                 % Now save the retrieved data in the datafolder in csv
+                 % format
+                csvfile = strcat(obj.datafolder, topic_to_save,'.csv');
+                writematrix(Data,csvfile);
+                
+                fprintf('Writing Odometry Data  to file %s from topic %s completed!!\n\n', csvfile, topic_to_read);
+                
+            end
+            
+        end % end of extractOdometryData
+        
         
     end % end of methods
     
