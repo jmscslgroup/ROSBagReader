@@ -64,21 +64,45 @@ Extract Laser Scan Data:
 
 `>>B.extractLaserData();`
 
+In this case, a mat file and a csv file is created in the folder `C:\Users\WildCat\Documents\VersionControl\2019-09-11-14-59-34\` 
+with the same name as the topic name. Mat file is a struct datatype, while csv file has 182 columns: 1st column is a timestamp in POSIX format while column 2-182 are radial distance/range data.
+
+
 Extract Velocity Data
 
 `>>B.extractVelData();`
- 
+In this case, a mat file and a csv file is created in the folder `C:\Users\WildCat\Documents\VersionControl\2019-09-11-14-59-34\` 
+with the same name as the topic name. Mat file is a struct datatype, while csv file has following columns:
+
+*[timestamp in POSIX format, Linear.X, Linear.Y, Linear.Z, Angular.X, Angular.Y, Angular.Z]*
+
 Extract Camera Data
 
 `>>B.extractCompressedImages();`
+
+In this case, a subfolder is created in the folder `C:\Users\WildCat\Documents\VersionControl\2019-09-11-14-59-34\` 
+with the same name as the topic name. This subfolder contains all the extracted image frame. Each image frame has file name that denotes
+its timestamp in POSIX format.
 
 Extract Odometry Data
 
 `>>B.extractOdometryData();`
 
+In this case, a mat file and a csv file is created in the folder `C:\Users\WildCat\Documents\VersionControl\2019-09-11-14-59-34\` 
+with the same name as the topic name. Mat file is a struct datatype, while csv file has following columns:
+
+*[timestamp in POSIX format, sequence id, frameId, childFrameId, PoseX, PoseY, PoseZ, QueternionX, QueternionY, QueternionZ, QueternionW, Linear.X, Linear.Y, Linear.Z, Angular.X, Angular.Y, Angular.Z, Position Covariance (36 columns), Twist Covariance (36 Columns)]*
+
 Extract Wrench Data
 
 `>>B.extractWrenchData();`
+
+In this case, a mat file and a csv file is created in the folder `C:\Users\WildCat\Documents\VersionControl\2019-09-11-14-59-34\` 
+with the same name as the topic name. Mat file is a struct datatype, while csv file has following columns:
+
+*[timestamp in POSIX format, ForceX, ForceY, ForceZ, TorqueX, TorqueY, TorqueZ]*
+
+Note: For brake and accelerator data captured in bag files from CAT Vehicle, only timestamp and Force.X is populated and remaining columns stay zero, whereas for steering data, only Torque.Z is populated.
 
 ## Issues
 If you run into any issues, please use the issue feature of the GitHub to log your issues. I will try my best to address any issue as soon as
@@ -87,7 +111,6 @@ possible.
 ## Contributing to this project
 If you like to contribute to this project, please fork this repository to your GitHub account, create a new branch for yourself and
 send a pull request for the merge. After reviewing the changes, we will decide if this is a good place to add your changes.
-
 If you like to see new data types being supported, please raise an enhancement issue and provide a relevant bag file that contains the 
 ros message of desired data types.
 
