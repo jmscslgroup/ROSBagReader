@@ -124,22 +124,34 @@ classdef ROSBagReader < matlab.mixin.Copyable
                                 
                 num_messages = num_msgs(i);
                 
-                Data = zeros(num_messages, length(msgStructs{1}.Ranges) + 1);
                 
+                % Here, we are finding maximum number of datapoints in the  
+                % range data among all the scan samples. If a range data of
+                % any sample has less number of points than others, then we
+                % will just append NaN at the end. The reason we agere doing
+                % is because of efficiency as it is more time consuming to
+                % read staggered matrix than a rectangular matrix.
+                Len = [];
                 for i = 1:num_messages
-                    
+                    Len = [Len, length(msgStructs{i}.Ranges)];
+                end
+                maxLen = max(Len);
+                Data = zeros(num_messages, maxLen + 1);
+                for i = 1:num_messages
+
+
                     tempLen = length(msgStructs{i}.Ranges);
-                    % TODO: How to node hardcode 181.
+                    
                     % We are doing this because for a particular timestep,
-                    % there are less than 181 datapoints
-                    if(tempLen < 181)
-                         NaNPOSTFIX = zeros( 181 - tempLen, 1)*NaN;
+                    % there are less than maxLen datapoints
+                    if(tempLen < maxLen)
+                         NaNPOSTFIX = zeros( maxLen - tempLen, 1)*NaN;
                          msgStructs{i}.Ranges = [msgStructs{i}.Ranges; NaNPOSTFIX];
                     end
                     
                     secondtime = double(msgStructs{i}.Header.Stamp.Sec)+double(msgStructs{i}.Header.Stamp.Nsec)*10^-9;
                     Data(i, 1) = secondtime;
-                    Data(i, 2:end) = msgStructs{i}.Ranges;
+                    Data(i, 2:end) = transpose(msgStructs{i}.Ranges);
                 end
                 
                 csvfile = strcat(obj.datafolder, topic_to_save,'.csv');
@@ -157,7 +169,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
             
             % Note down the index of twist messages from table topic
             % Note that there can be multiple topics of
-            % geometry_msgs/Twist type. extractLaserData function
+            % geometry_msgs/Twist type. extractVelData function
             % retrieves all such topics of type geometry_msgs/Twist
             index_twist = obj.messageType == 'geometry_msgs/Twist';
             
@@ -231,7 +243,6 @@ classdef ROSBagReader < matlab.mixin.Copyable
 
                 % Retrieve messages from this topic in an struct format
                 msgStructs = readMessages(scan_select);
-                msgStructs{1}.Header.Stamp.Sec
                 % since ROS topic names contain slashes, we will replace
                 % every slash with a dash. This topic name will be used to
                 % create the mat file, meaning mat file that saves message
@@ -261,7 +272,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
         
         % Function to extract  Odometry Data and save in the file where
         % rosbag file is located
-        function Data = extractOdometryData(obj)
+        function extractOdometryData(obj)
             
             % Note down the index of twist messages from table topic
             % Note that there can be multiple topics of
@@ -278,7 +289,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
             % Now we will iterate over all the topics and retrieve data
             % from every topic of message type nav_msgs/Odometry
             % and save them in mat format as well as csv format
-            Data = [];
+            
             for i = 1:length(topic_of_odom)
                 topic_to_read = topic_of_odom{i};
                 fprintf('\nReading the Odometry messages on the topic %s\n\n', topic_to_read);
@@ -372,6 +383,60 @@ classdef ROSBagReader < matlab.mixin.Copyable
             
         end % end of extractOdometryData
         
+        % Function to extract  Wrench Data and save in the file where
+        % rosbag file is located
+        function extractWrenchData(obj)
+            
+            % Note down the index of Wrench messages from table topic
+            % Note that there can be multiple topics of
+            % geometry_msgs/Wrench type. extractWrenchData function
+            % retrieves all such topics of type geometry_msgs/Wrench
+            index_wrench = obj.messageType == 'geometry_msgs/Wrench';
+            
+            % find all the topics of type geometry_msgs/Wrench
+            topic_of_wrench = obj.availableTopics(index_wrench);
+            if(isempty(topic_of_wrench))
+                fprintf('\nNo Wrench messages found.\n\n');
+                return;
+            end
+            % Now we will iterate over all the topics and retrieve data
+            % from every topic of message type geometry_msgs/Wrench
+            % and save them in mat format as well as csv format
+            for i = 1:length(topic_of_wrench)
+                topic_to_read = topic_of_wrench{i};
+                fprintf('\nReading the Wrench messages on the topic %s\n\n', topic_to_read);
+                
+                % Select object that selects particular topic from rosbag object
+                 wrench_select = select(obj.bagReader, 'Topic', topic_to_read);
+
+                % Save messages in timeseries format
+                wrenchData = timeseries(wrench_select);
+                
+                % since ROS topic names contain slashes, we will replace
+                % every slash with a dash. This topic name will be used to
+                % create the mat file, meaning mat file that saves message
+                % has same name as the corresponding topic           
+                topic_to_save = strrep(topic_to_read(2:end),'/','-');
+                
+                % Now save the retrieved data in the datafolder
+                matfile = strcat(obj.datafolder, topic_to_save,'.mat');
+                
+                save(matfile,'wrenchData');
+
+                fprintf('Writing Wrench Data  to file %s from topic %s completed!!\n\n', matfile, topic_to_read);
+
+                Data = [wrenchData.Time, wrenchData.Data];
+                
+                 % Now save the retrieved data in the datafolder in csv
+                 % format
+                csvfile = strcat(obj.datafolder, topic_to_save,'.csv');
+                writematrix(Data,csvfile,'Delimiter',',');
+                
+                 fprintf('Writing Wrench Data  to file %s from topic %s completed!!\n\n', csvfile, topic_to_read);
+                
+            end
+            
+        end % end of extractwrenchData
         
     end % end of methods
     
