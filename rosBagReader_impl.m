@@ -13,5 +13,7 @@ B.extractVelData();
 B.extractCompressedImages();
 
 % Extract Odometry Data
-Data = B.extractOdometryData();
+B.extractOdometryData();
 
+% Extract Wrench Data
+B.extractWrenchData();
