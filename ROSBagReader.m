@@ -47,11 +47,15 @@ classdef ROSBagReader < matlab.mixin.Copyable
     methods
         %% Constructors
         function obj = ROSBagReader(file)
+            
             if nargin == 1
                 obj.bagfile = file;
                 
-                file = file;
-                slashIndices = strfind(file, '/');
+                if ismac || isunix
+                    slashIndices = strfind(file, '/');
+                elseif ispc
+                    slashIndices = strfind(file, '\');
+                end
                 obj.filename = file(slashIndices(end)+1: end);
                 
 
@@ -69,7 +73,12 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 obj.numMessages = obj.bagReader.AvailableTopics.NumMessages; % store number of messages for each topic
                 obj.messageType = obj.bagReader.AvailableTopics.MessageType; % Store message type for each topic
                 
-                obj.datafolder = strcat(obj.dir ,obj.filename(1:end-4),'/');
+                if ismac || isunix
+                    obj.datafolder = strcat(obj.dir ,obj.filename(1:end-4),'/');
+                elseif ispc
+                    obj.datafolder = strcat(obj.dir ,obj.filename(1:end-4),'\');
+                end
+                
                 
                 [~, ~, msgID] =  mkdir(obj.datafolder );
                 if( strcmp(msgID, 'MATLAB:MKDIR:DirectoryExists') )
@@ -155,8 +164,13 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 end
                 
                 csvfile = strcat(obj.datafolder, topic_to_save,'.csv');
-                writematrix(Data,csvfile,'Delimiter',',');
                 
+                % Support for version older than 2019
+                if contains(version, '2019')
+                    writematrix(Data,csvfile,'Delimiter',',');
+                else
+                    csvwrite(csvfile, Data);
+                end
                 fprintf('Writing Laser Scan Data  to file %s from topic %s completed!!\n\n', csvfile, topic_to_read);
                 
             end
@@ -210,7 +224,12 @@ classdef ROSBagReader < matlab.mixin.Copyable
                  % Now save the retrieved data in the datafolder in csv
                  % format
                 csvfile = strcat(obj.datafolder, topic_to_save,'.csv');
-                writematrix(Data,csvfile,'Delimiter',',');
+                 % Support for version older than 2019
+                if contains(version, '2019')
+                    writematrix(Data,csvfile,'Delimiter',',');
+                else
+                    csvwrite(csvfile, Data);
+                end
                 
                  fprintf('Writing Velocity Data  to file %s from topic %s completed!!\n\n', csvfile, topic_to_read);
                 
@@ -375,7 +394,13 @@ classdef ROSBagReader < matlab.mixin.Copyable
                  % Now save the retrieved data in the datafolder in csv
                  % format
                 csvfile = strcat(obj.datafolder, topic_to_save,'.csv');
-                writematrix(Data,csvfile);
+                % Support for version older than 2019
+                if contains(version, '2019')
+                    writematrix(Data,csvfile,'Delimiter',',');
+                else
+                    T = array2table(Data);
+                    writetable(T, csvfile, 'WriteVariableNames',0);
+                end
                 
                 fprintf('Writing Odometry Data  to file %s from topic %s completed!!\n\n', csvfile, topic_to_read);
                 
@@ -430,9 +455,14 @@ classdef ROSBagReader < matlab.mixin.Copyable
                  % Now save the retrieved data in the datafolder in csv
                  % format
                 csvfile = strcat(obj.datafolder, topic_to_save,'.csv');
-                writematrix(Data,csvfile,'Delimiter',',');
+                 % Support for version older than 2019
+                if contains(version, '2019')
+                    writematrix(Data,csvfile,'Delimiter',',');
+                else
+                    csvwrite(csvfile, Data);
+                end
                 
-                 fprintf('Writing Wrench Data  to file %s from topic %s completed!!\n\n', csvfile, topic_to_read);
+                fprintf('Writing Wrench Data  to file %s from topic %s completed!!\n\n', csvfile, topic_to_read);
                 
             end
             
