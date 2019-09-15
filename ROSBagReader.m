@@ -56,8 +56,11 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 elseif ispc
                     slashIndices = strfind(file, '\');
                 end
-                obj.filename = file(slashIndices(end)+1: end);
-                
+                if ~isempty(slashIndices)
+                    obj.filename = file(slashIndices(end)+1: end);
+                else
+                    obj.filename = file;
+                end
 
                 if ~isempty(slashIndices)
                     obj.dir = file(slashIndices(1): slashIndices(end));
@@ -145,10 +148,9 @@ classdef ROSBagReader < matlab.mixin.Copyable
                     Len = [Len, length(msgStructs{i}.Ranges)];
                 end
                 maxLen = max(Len);
-                Data = zeros(num_messages, maxLen + 1);
+                Data = string(zeros(num_messages, maxLen + 1));
                 for i = 1:num_messages
-
-
+                    
                     tempLen = length(msgStructs{i}.Ranges);
                     
                     % We are doing this because for a particular timestep,
@@ -169,7 +171,8 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 if contains(version, '2019')
                     writematrix(Data,csvfile,'Delimiter',',');
                 else
-                    csvwrite(csvfile, Data);
+                    T = array2table(Data);
+                    writetable(T, csvfile, 'WriteVariableNames',0);
                 end
                 fprintf('Writing Laser Scan Data  to file %s from topic %s completed!!\n\n', csvfile, topic_to_read);
                 
@@ -219,7 +222,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
 
                 fprintf('Writing Velocity Data  to file %s from topic %s completed!!\n\n', matfile, topic_to_read);
 
-                Data = [velData.Time, velData.Data];
+                Data = string([velData.Time, velData.Data]);
                 
                  % Now save the retrieved data in the datafolder in csv
                  % format
@@ -228,7 +231,8 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 if contains(version, '2019')
                     writematrix(Data,csvfile,'Delimiter',',');
                 else
-                    csvwrite(csvfile, Data);
+                    T = array2table(Data);
+                    writetable(T, csvfile, 'WriteVariableNames',0);
                 end
                 
                  fprintf('Writing Velocity Data  to file %s from topic %s completed!!\n\n', csvfile, topic_to_read);
@@ -450,7 +454,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
 
                 fprintf('Writing Wrench Data  to file %s from topic %s completed!!\n\n', matfile, topic_to_read);
 
-                Data = [wrenchData.Time, wrenchData.Data];
+                Data = string([wrenchData.Time, wrenchData.Data]);
                 
                  % Now save the retrieved data in the datafolder in csv
                  % format
@@ -459,7 +463,8 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 if contains(version, '2019')
                     writematrix(Data,csvfile,'Delimiter',',');
                 else
-                    csvwrite(csvfile, Data);
+                    T = array2table(Data);
+                    writetable(T, csvfile, 'WriteVariableNames',0);
                 end
                 
                 fprintf('Writing Wrench Data  to file %s from topic %s completed!!\n\n', csvfile, topic_to_read);
