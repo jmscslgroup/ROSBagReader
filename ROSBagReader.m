@@ -19,9 +19,9 @@ classdef ROSBagReader < matlab.mixin.Copyable
     % ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED 
     % TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
     % PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT 
-    % SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR 
-    % ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
-    % ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+    % SHALL THE AUTHORS, COPYRIGHT HOLDERS OR ARIZONA BOARD OF REGENTS
+    % BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN 
+    % AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
     % OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE 
     % OR OTHER DEALINGS IN THE SOFTWARE.
     
@@ -245,7 +245,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
             % Note that there can be multiple topics of
             %  sensor_msgs/CompressedImage type. extractCompressedImages function
             % retrieves all such topics of type  sensor_msgs/CompressedImage
-            index_scan = obj.messageType == ' sensor_msgs/CompressedImage';
+            index_scan = obj.messageType == 'sensor_msgs/CompressedImage';
             
             % find all the topics of type sensor_msgs/LaserScan
             topic_of_scan = obj.availableTopics(index_scan);
