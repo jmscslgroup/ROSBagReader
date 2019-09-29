@@ -182,7 +182,19 @@ classdef ROSBagReader < matlab.mixin.Copyable
         
         % Function to extract  Velocity Data and save in the file where
         % rosbag file is located
-        function extractVelData(obj)
+        function extractVelData(obj, varargin)
+            
+            start_time = 0.0;
+            end_time = 0.0;
+            
+            if length(varargin) > 2
+                error("Too Many Input Arguments. Expecting only initial time and end time");  
+            elseif  length(varargin) == 2
+                start_time = varargin(1);
+                start_time = start_time{1};
+                end_time = varargin(2);
+                end_time = end_time{1};
+            end
             
             % Note down the index of twist messages from table topic
             % Note that there can be multiple topics of
@@ -209,6 +221,27 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 % Save messages in timeseries format
                 velData = timeseries(twist_select);
                 
+                % Get the first time stamp
+                initial_ros_time = velData.Time(1);
+                
+                if length(varargin) == 2
+                                        
+                    % Get the total duration of the captured message
+                    total_duration = velData.Time(end) - initial_ros_time;
+                    if(end_time > total_duration)
+                        warning(sprintf("End time specified exceeds the total duration of the captured message.\nExtracting upto maximum duration only."));
+                        end_time = total_duration;
+                    end
+                    
+                    % Select object that selects particular topic from
+                    % rosbag object with specified time duration
+                    twist_select = select(obj.bagReader, 'Topic', topic_to_read, 'Time', [start_time + initial_ros_time, end_time + initial_ros_time ]);
+
+                    % Save messages in timeseries format
+                    velData = timeseries(twist_select);
+
+                end
+                                
                 % since ROS topic names contain slashes, we will replace
                 % every slash with a dash. This topic name will be used to
                 % create the mat file, meaning mat file that saves message
