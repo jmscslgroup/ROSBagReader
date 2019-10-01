@@ -182,11 +182,12 @@ classdef ROSBagReader < matlab.mixin.Copyable
         
         % Function to extract  Velocity Data and save in the file where
         % rosbag file is located
-        function extractVelData(obj, varargin)
+        function [CSV, MAT] = extractVelData(obj, varargin)
             
             start_time = 0.0;
             end_time = 0.0;
-            
+            CSV  = {};
+            MAT = {};
             if length(varargin) > 2
                 error("Too Many Input Arguments. Expecting only initial time and end time");  
             elseif  length(varargin) == 2
@@ -250,7 +251,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 
                 % Now save the retrieved data in the datafolder
                 matfile = strcat(obj.datafolder, topic_to_save,'.mat');
-                
+                MAT{i} = matfile;
                 save(matfile,'velData');
 
                 fprintf('Writing Velocity Data  to file %s from topic %s completed!!\n\n', matfile, topic_to_read);
@@ -260,6 +261,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
                  % Now save the retrieved data in the datafolder in csv
                  % format
                 csvfile = strcat(obj.datafolder, topic_to_save,'.csv');
+                CSV{i} = csvfile;
                  % Support for version older than 2019
                 if contains(version, '2019')
                     writematrix(Data,csvfile,'Delimiter',',');
