@@ -352,8 +352,8 @@ classdef ROSBagReader < matlab.mixin.Copyable
             % Now we will iterate over all the topics and retrieve data
             % from every topic of message type nav_msgs/Odometry
             % and save them in mat format as well as csv format
-            MAT = cell(1,  length(topic_of_twist));
-            CSV = cell(1,  length(topic_of_twist));
+            MAT = cell(1,  length(topic_of_odom));
+            CSV = cell(1,  length(topic_of_odom));
             
             for i = 1:length(topic_of_odom)
                 topic_to_read = topic_of_odom{i};
