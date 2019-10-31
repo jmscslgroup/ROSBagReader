@@ -48,6 +48,11 @@ classdef ROSBagReader < matlab.mixin.Copyable
         %% Constructors
         function obj = ROSBagReader(file)
             
+            % Clip ./ if file starts with ./
+            if contains(file, './')
+                file = file(3:end);
+            end
+            
             if nargin == 1
                 obj.bagfile = file;
                 
@@ -382,27 +387,27 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 num_messages = num_msgs(i);
 
                 %%%%%%%%
-                i = 1;
-                secondtime = double(msgStructs{i}.Header.Stamp.Sec)+double(msgStructs{i}.Header.Stamp.Nsec)*10^-9;
-                sequence = msgStructs{i}.Header.Seq;
-                frameId = string(msgStructs{i}.Header.FrameId);
-                childFrameId = string(msgStructs{i}.ChildFrameId);
-                PoseX = msgStructs{i}.Pose.Pose.Position.X;
-                PoseY = msgStructs{i}.Pose.Pose.Position.Y;
-                PoseZ = msgStructs{i}.Pose.Pose.Position.Z;
-                OrientationX =msgStructs{i}.Pose.Pose.Orientation.X;
-                OrientationY = msgStructs{i}.Pose.Pose.Orientation.Y;
-                OrientationZ = msgStructs{i}.Pose.Pose.Orientation.Z;
-                OrientationW = msgStructs{i}.Pose.Pose.Orientation.W;
-                LinearX = msgStructs{i}.Twist.Twist.Linear.X;
-                LinearY = msgStructs{i}.Twist.Twist.Linear.Y;
-                LinearZ = msgStructs{i}.Twist.Twist.Linear.Z;
-                AngularX = msgStructs{i}.Twist.Twist.Angular.X;
-                AngularY = msgStructs{i}.Twist.Twist.Angular.Y;
-                AngularZ = msgStructs{i}.Twist.Twist.Angular.Z;
+                inum = 1;
+                secondtime = double(msgStructs{inum}.Header.Stamp.Sec)+double(msgStructs{inum}.Header.Stamp.Nsec)*10^-9;
+                sequence = msgStructs{inum}.Header.Seq;
+                frameId = string(msgStructs{inum}.Header.FrameId);
+                childFrameId = string(msgStructs{inum}.ChildFrameId);
+                PoseX = msgStructs{inum}.Pose.Pose.Position.X;
+                PoseY = msgStructs{inum}.Pose.Pose.Position.Y;
+                PoseZ = msgStructs{inum}.Pose.Pose.Position.Z;
+                OrientationX =msgStructs{inum}.Pose.Pose.Orientation.X;
+                OrientationY = msgStructs{inum}.Pose.Pose.Orientation.Y;
+                OrientationZ = msgStructs{inum}.Pose.Pose.Orientation.Z;
+                OrientationW = msgStructs{inum}.Pose.Pose.Orientation.W;
+                LinearX = msgStructs{inum}.Twist.Twist.Linear.X;
+                LinearY = msgStructs{inum}.Twist.Twist.Linear.Y;
+                LinearZ = msgStructs{inum}.Twist.Twist.Linear.Z;
+                AngularX = msgStructs{inum}.Twist.Twist.Angular.X;
+                AngularY = msgStructs{inum}.Twist.Twist.Angular.Y;
+                AngularZ = msgStructs{inum}.Twist.Twist.Angular.Z;
 
-                PoseCov = msgStructs{i}.Pose.Covariance;
-                TwistCov =msgStructs{i}.Twist.Covariance;
+                PoseCov = msgStructs{inum}.Pose.Covariance;
+                TwistCov =msgStructs{inum}.Twist.Covariance;
                 
                 num_columns = length(secondtime) + length(sequence) + length(frameId) + length(childFrameId) + ...
                     length(PoseX) + length(PoseY) + length(PoseZ) + length(OrientationX) + length(OrientationY) + ...
@@ -410,7 +415,24 @@ classdef ROSBagReader < matlab.mixin.Copyable
                     length(LinearZ) + length(AngularX) + length(AngularY) + length(AngularZ) + ...
                     length(PoseCov) + length(TwistCov);
                     
-                Data = string(zeros(num_messages, num_columns));
+                Data = string(zeros(num_messages+1, num_columns));
+                
+                Header = string(zeros(1,  num_columns));
+                Header(:, 1:17) = ["Time", "SequenceID", "FrameID", "ChildFrameID", "PoseX", "PoseY", "PoseZ", "OrientationX",...
+                    "OrientationY", "OrientationZ", "OrientationW", "LinearX", "LinearY", "LinearZ", ...
+                    "AngularX", "AngularY", "AngularZ"];
+                
+                for j = 1:length(PoseCov)
+                    Header(:, 17+j) =  strcat("PoseCov", num2str(j));
+                end
+                
+                for j = 1:length(TwistCov)
+                    Header(:,17+j+length(PoseCov)) = strcat("TwistCov", num2str(j));
+                end
+                
+                Header
+                Data(1, :) = Header;
+                
                 for inum = 1:num_messages
                     
                     secondtime = double(msgStructs{inum}.Header.Stamp.Sec)+double(msgStructs{inum}.Header.Stamp.Nsec)*10^-9;
@@ -434,7 +456,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
                     PoseCov = transpose(msgStructs{inum}.Pose.Covariance);
                     TwistCov =transpose(msgStructs{inum}.Twist.Covariance);
                     
-                    Data(inum, :) = [secondtime, sequence, frameId, childFrameId, PoseX,PoseY, PoseZ, ...
+                    Data(inum+1, :) = [secondtime, sequence, frameId, childFrameId, PoseX,PoseY, PoseZ, ...
                         OrientationX, OrientationY, OrientationZ, OrientationW, LinearX, LinearY, LinearZ,...
                         AngularX, AngularY, AngularZ, PoseCov, TwistCov];
                 end
