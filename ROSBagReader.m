@@ -212,6 +212,8 @@ classdef ROSBagReader < matlab.mixin.Copyable
             % Now we will iterate over all the topics and retrieve data
             % from every topic of message type geometry_msgs/Twist
             % and save them in mat format as well as csv format
+            MAT = cell(1,  length(topic_of_twist));
+            CSV = cell(1,  length(topic_of_twist));
             for i = 1:length(topic_of_twist)
                 topic_to_read = topic_of_twist{i};
                 fprintf('\nReading the Velocity messages on the topic %s\n\n', topic_to_read);
@@ -330,7 +332,10 @@ classdef ROSBagReader < matlab.mixin.Copyable
         
         % Function to extract  Odometry Data and save in the file where
         % rosbag file is located
-        function extractOdometryData(obj)
+        function [CSV, MAT]  = extractOdometryData(obj)
+            
+            CSV  = {};
+            MAT = {};
             
             % Note down the index of twist messages from table topic
             % Note that there can be multiple topics of
@@ -347,6 +352,8 @@ classdef ROSBagReader < matlab.mixin.Copyable
             % Now we will iterate over all the topics and retrieve data
             % from every topic of message type nav_msgs/Odometry
             % and save them in mat format as well as csv format
+            MAT = cell(1,  length(topic_of_twist));
+            CSV = cell(1,  length(topic_of_twist));
             
             for i = 1:length(topic_of_odom)
                 topic_to_read = topic_of_odom{i};
@@ -365,6 +372,8 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 
                 % Now save the retrieved data in the datafolder
                 matfile = strcat(obj.datafolder, topic_to_save,'.mat');
+                
+                MAT{i} = matfile;
                 
                 save(matfile,'msgStructs');
 
@@ -402,30 +411,30 @@ classdef ROSBagReader < matlab.mixin.Copyable
                     length(PoseCov) + length(TwistCov);
                     
                 Data = string(zeros(num_messages, num_columns));
-                for i = 1:num_messages
+                for inum = 1:num_messages
                     
-                    secondtime = double(msgStructs{i}.Header.Stamp.Sec)+double(msgStructs{i}.Header.Stamp.Nsec)*10^-9;
-                    sequence = msgStructs{i}.Header.Seq;
-                    frameId = string(msgStructs{i}.Header.FrameId);
-                    childFrameId = string(msgStructs{i}.ChildFrameId);
-                    PoseX = msgStructs{i}.Pose.Pose.Position.X;
-                    PoseY = msgStructs{i}.Pose.Pose.Position.Y;
-                    PoseZ = msgStructs{i}.Pose.Pose.Position.Z;
-                    OrientationX =msgStructs{i}.Pose.Pose.Orientation.X;
-                    OrientationY = msgStructs{i}.Pose.Pose.Orientation.Y;
-                    OrientationZ = msgStructs{i}.Pose.Pose.Orientation.Z;
-                    OrientationW = msgStructs{i}.Pose.Pose.Orientation.W;
-                    LinearX = msgStructs{i}.Twist.Twist.Linear.X;
-                    LinearY = msgStructs{i}.Twist.Twist.Linear.Y;
-                    LinearZ = msgStructs{i}.Twist.Twist.Linear.Z;
-                    AngularX = msgStructs{i}.Twist.Twist.Angular.X;
-                    AngularY = msgStructs{i}.Twist.Twist.Angular.Y;
-                    AngularZ = msgStructs{i}.Twist.Twist.Angular.Z;
+                    secondtime = double(msgStructs{inum}.Header.Stamp.Sec)+double(msgStructs{inum}.Header.Stamp.Nsec)*10^-9;
+                    sequence = msgStructs{inum}.Header.Seq;
+                    frameId = string(msgStructs{inum}.Header.FrameId);
+                    childFrameId = string(msgStructs{inum}.ChildFrameId);
+                    PoseX = msgStructs{inum}.Pose.Pose.Position.X;
+                    PoseY = msgStructs{inum}.Pose.Pose.Position.Y;
+                    PoseZ = msgStructs{inum}.Pose.Pose.Position.Z;
+                    OrientationX =msgStructs{inum}.Pose.Pose.Orientation.X;
+                    OrientationY = msgStructs{inum}.Pose.Pose.Orientation.Y;
+                    OrientationZ = msgStructs{inum}.Pose.Pose.Orientation.Z;
+                    OrientationW = msgStructs{inum}.Pose.Pose.Orientation.W;
+                    LinearX = msgStructs{inum}.Twist.Twist.Linear.X;
+                    LinearY = msgStructs{inum}.Twist.Twist.Linear.Y;
+                    LinearZ = msgStructs{inum}.Twist.Twist.Linear.Z;
+                    AngularX = msgStructs{inum}.Twist.Twist.Angular.X;
+                    AngularY = msgStructs{inum}.Twist.Twist.Angular.Y;
+                    AngularZ = msgStructs{inum}.Twist.Twist.Angular.Z;
                     
-                    PoseCov = transpose(msgStructs{i}.Pose.Covariance);
-                    TwistCov =transpose(msgStructs{i}.Twist.Covariance);
+                    PoseCov = transpose(msgStructs{inum}.Pose.Covariance);
+                    TwistCov =transpose(msgStructs{inum}.Twist.Covariance);
                     
-                    Data(i, :) = [secondtime, sequence, frameId, childFrameId, PoseX,PoseY, PoseZ, ...
+                    Data(inum, :) = [secondtime, sequence, frameId, childFrameId, PoseX,PoseY, PoseZ, ...
                         OrientationX, OrientationY, OrientationZ, OrientationW, LinearX, LinearY, LinearZ,...
                         AngularX, AngularY, AngularZ, PoseCov, TwistCov];
                 end
@@ -433,6 +442,8 @@ classdef ROSBagReader < matlab.mixin.Copyable
                  % Now save the retrieved data in the datafolder in csv
                  % format
                 csvfile = strcat(obj.datafolder, topic_to_save,'.csv');
+                CSV{i} = csvfile;
+                
                 % Support for version older than 2019
                 if contains(version, '2019')
                     writematrix(Data,csvfile,'Delimiter',',');
