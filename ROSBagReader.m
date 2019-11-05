@@ -422,15 +422,19 @@ classdef ROSBagReader < matlab.mixin.Copyable
                     "OrientationY", "OrientationZ", "OrientationW", "LinearX", "LinearY", "LinearZ", ...
                     "AngularX", "AngularY", "AngularZ"];
                 
+    %            Header(:, 18:18+length(PoseCov)-1) = strcat(repmat("PoseCov",1,length(PoseCov)), num2str(1:length(PoseCov)));
+                
                 for j = 1:length(PoseCov)
                     Header(:, 17+j) =  strcat("PoseCov", num2str(j));
                 end
-                
+
+%                Header(:, 18+length(PoseCov):18+length(PoseCov) + length(TwistCov)-1) = strcat(repmat("TwistCov",1,length(TwistCov)), num2str(1:length(TwistCov)));
+
+        
                 for j = 1:length(TwistCov)
-                    Header(:,17+j+length(PoseCov)) = strcat("TwistCov", num2str(j));
+                    Header(:,17+j+length(TwistCov)) = strcat("TwistCov", num2str(j));
                 end
                 
-                Header
                 Data(1, :) = Header;
                 
                 for inum = 1:num_messages
