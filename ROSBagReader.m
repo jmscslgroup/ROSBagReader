@@ -27,8 +27,8 @@ classdef ROSBagReader < matlab.mixin.Copyable
     
     
     % Description 
-    % This is a matlab class called as Bagreader that reads a bag file
-    % and 
+    % This is a matlab class called as ROSBagReader that reads a bag file
+    % and extracts data in CSV and MAT format.
     
     %% Properties
     properties
