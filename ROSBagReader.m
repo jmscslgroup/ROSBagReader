@@ -545,6 +545,69 @@ classdef ROSBagReader < matlab.mixin.Copyable
             
         end % end of extractwrenchData
         
+         % Function to extract  Clock Data of type rosgraph_msgs/Clock and save in the file where
+        % rosbag file is located
+        function extractClockData(obj)
+            
+            % Note down the index of Clock messages from table topic
+            % Note that there can be multiple topics of
+            % rosgraph_msgs/Clock type. extractClockData function
+            % retrieves all such topics of type rosgraph_msgs/Clock
+            index_Clock = obj.messageType == 'rosgraph_msgs/Clock';
+            
+            % find all the topics of type rosgraph_msgs/Clock
+            topic_of_clock = obj.availableTopics(index_Clock);
+            if(isempty(topic_of_clock))
+                fprintf('\nNo Clock messages found.\n\n');
+                return;
+            end
+            % Now we will iterate over all the topics and retrieve data
+            % from every topic of message type rosgraph_msgs/Clock
+            % and save them in mat format as well as csv format
+            for i = 1:length(topic_of_clock)
+                topic_to_read = topic_of_clock{i};
+                fprintf('\nReading the Clock messages on the topic %s\n\n', topic_to_read);
+                
+                % Select object that selects particular topic from rosbag object
+                 clock_select = select(obj.bagReader, 'Topic', topic_to_read);
+
+                % Save messages in timeseries format
+                clockData = timeseries(clock_select);
+                
+                % since ROS topic names contain slashes, we will replace
+                % every slash with a dash. This topic name will be used to
+                % create the mat file, meaning mat file that saves message
+                % has same name as the corresponding topic           
+                topic_to_save = strrep(topic_to_read(2:end),'/','-');
+                
+                % Now save the retrieved data in the datafolder
+                matfile = strcat(obj.datafolder, topic_to_save,'.mat');
+                
+                save(matfile,'clockData');
+
+                fprintf('Writing Clock Data  to file %s from topic %s completed!!\n\n', matfile, topic_to_read);
+
+                Data_Headless = string([clockData.Time, clockData.Data]);
+                Header = ["Time", "Secs","Nsecs"];
+                Data = [Header   ; Data_Headless];
+                
+                 % Now save the retrieved data in the datafolder in csv
+                 % format
+                csvfile = strcat(obj.datafolder, topic_to_save,'.csv');
+                 % Support for version older than 2019
+                if contains(version, '2019')
+                    writematrix(Data,csvfile,'Delimiter',',');
+                else
+                    T = array2table(Data);
+                    writetable(T, csvfile, 'WriteVariableNames',0);
+                end
+                
+                fprintf('Writing Clock Data  to file %s from topic %s completed!!\n\n', csvfile, topic_to_read);
+                
+            end
+            
+        end % end of extractClockData
+        
     end % end of methods
     
             
