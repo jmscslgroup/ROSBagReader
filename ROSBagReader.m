@@ -554,7 +554,8 @@ classdef ROSBagReader < matlab.mixin.Copyable
             % rosgraph_msgs/Clock type. extractClockData function
             % retrieves all such topics of type rosgraph_msgs/Clock
             index_Clock = obj.messageType == 'rosgraph_msgs/Clock';
-            
+            CSV  = {};
+            MAT = {};
             % find all the topics of type rosgraph_msgs/Clock
             topic_of_clock = obj.availableTopics(index_Clock);
             if(isempty(topic_of_clock))
@@ -564,6 +565,8 @@ classdef ROSBagReader < matlab.mixin.Copyable
             % Now we will iterate over all the topics and retrieve data
             % from every topic of message type rosgraph_msgs/Clock
             % and save them in mat format as well as csv format
+            MAT = cell(1,  length(topic_of_clock));
+            CSV = cell(1,  length(topic_of_clock));
             for i = 1:length(topic_of_clock)
                 topic_to_read = topic_of_clock{i};
                 fprintf('\nReading the Clock messages on the topic %s\n\n', topic_to_read);
@@ -582,7 +585,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 
                 % Now save the retrieved data in the datafolder
                 matfile = strcat(obj.datafolder, topic_to_save,'.mat');
-                
+                MAT{i} = matfile;
                 save(matfile,'clockData');
 
                 fprintf('Writing Clock Data  to file %s from topic %s completed!!\n\n', matfile, topic_to_read);
@@ -594,6 +597,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
                  % Now save the retrieved data in the datafolder in csv
                  % format
                 csvfile = strcat(obj.datafolder, topic_to_save,'.csv');
+                CSV{i} = csvfile;
                  % Support for version older than 2019
                 if contains(version, '2019')
                     writematrix(Data,csvfile,'Delimiter',',');
