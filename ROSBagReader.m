@@ -547,7 +547,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
         
          % Function to extract  Clock Data of type rosgraph_msgs/Clock and save in the file where
         % rosbag file is located
-        function extractClockData(obj)
+        function  [CSV, MAT]  = extractClockData(obj)
             
             % Note down the index of Clock messages from table topic
             % Note that there can be multiple topics of
