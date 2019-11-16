@@ -263,7 +263,9 @@ classdef ROSBagReader < matlab.mixin.Copyable
 
                 fprintf('Writing Velocity Data  to file %s from topic %s completed!!\n\n', matfile, topic_to_read);
 
-                Data = string([velData.Time, velData.Data]);
+                Data_Headless = string([velData.Time, velData.Data]);
+                Header = ["Time", "LinearX","LinearY", "LinearZ", "AngularX", "AngularY", "AngularZ"];
+                Data = [Header   ; Data_Headless];
                 
                  % Now save the retrieved data in the datafolder in csv
                  % format
