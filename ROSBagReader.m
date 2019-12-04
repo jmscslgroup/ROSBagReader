@@ -153,7 +153,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
                     Len = [Len, length(msgStructs{i}.Ranges)];
                 end
                 maxLen = max(Len);
-                Data = string(zeros(num_messages, maxLen + 1));
+                Data_Headless = string(zeros(num_messages, maxLen + 1));
                 for i = 1:num_messages
                     
                     tempLen = length(msgStructs{i}.Ranges);
@@ -166,9 +166,17 @@ classdef ROSBagReader < matlab.mixin.Copyable
                     end
                     
                     secondtime = double(msgStructs{i}.Header.Stamp.Sec)+double(msgStructs{i}.Header.Stamp.Nsec)*10^-9;
-                    Data(i, 1) = secondtime;
-                    Data(i, 2:end) = transpose(msgStructs{i}.Ranges);
+                    Data_Headless(i, 1) = secondtime;
+                    Data_Headless(i, 2:end) = transpose(msgStructs{i}.Ranges);
                 end
+                
+                Header = string(zeros(1,  maxLen + 1));
+                Header(:,1) = 'Time';
+                for j = 2:maxLen + 1
+                    Header(:, j) =  strcat("Range", num2str(j-1));
+                end
+                
+                Data = [Header   ; Data_Headless];
                 
                 csvfile = strcat(obj.datafolder, topic_to_save,'.csv');
                 
