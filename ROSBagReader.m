@@ -173,7 +173,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 Header = string(zeros(1,  maxLen + 1));
                 Header(:,1) = 'Time';
                 for j = 2:maxLen + 1
-                    Header(:, j) =  strcat("Range", num2str(j-1));
+                    Header(:, j) =  strcat('Range', num2str(j-1));
                 end
                 
                 Data = [Header   ; Data_Headless];
@@ -361,7 +361,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
             % find all the topics of type nav_msgs/Odometry 
             topic_of_odom = obj.availableTopics(index_odom);
             if(isempty(topic_of_odom))
-                fprintf('\nNo velocity messages found.\n\n');
+                fprintf('\nNo Odometry messages found.\n\n');
                 return;
             end
             % Now we will iterate over all the topics and retrieve data
