@@ -19,7 +19,6 @@ recommended choice but CSV file format is a good start for amateurs or working w
 image data are an exception. Image frames are extracted as png files in a subsubfolder of the subfolder with the same name as the topic name.
 Image's timestamp is used as the file name for image frames.
 
-
 ## System Requirements and Dependencies
 - Basic knowledge of Object-Oriented Program (OOP) is recommended but not required. Usages are simple but knowledge of
 OOP can boost the understanding of the core principle behind this package.
@@ -103,6 +102,9 @@ with the same name as the topic name. Mat file is a struct datatype, while csv f
 *[timestamp in POSIX format, ForceX, ForceY, ForceZ, TorqueX, TorqueY, TorqueZ]*
 
 Note: For brake and accelerator data captured in bag files from CAT Vehicle, only timestamp and Force.X is populated and remaining columns stay zero, whereas for steering data, only Torque.Z is populated.
+
+## Getting help
+Once you have added ROSBagReader project folder to MATLAB's path using `addpath` command, you can tye `doc ROSBagReader` to read the documentation.
 
 ## Issues
 If you run into any issues, please use the issue feature of the GitHub to log your issues. I will try my best to address any issue as soon as
