@@ -501,8 +501,6 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 fprintf('Compressed Image extraction  to the folder %s from topic %s completed!!\n\n', figurefolder, topic_to_read);
                                 
             end
-            
-             obj.messageDictionary('CompressedImages') =   MAT;
              
         end % end of extractCompressedImages
         
