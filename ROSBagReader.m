@@ -804,6 +804,11 @@ classdef ROSBagReader < matlab.mixin.Copyable
             % ts_plotVelData plots the velocity data of type geometry_msgs/Twist extracted by calling function extractVelData.
             %   ts_plotVelData returns the path  of the fig files, pdf files and png files
            
+            if ~isKey(obj.messageDictionary, 'VelData')
+                fprintf('No Velocity message found for the given bag file');
+                return;
+            end
+            
             % retreive the name of the VelData files
             VEL_MAT = obj.messageDictionary('VelData');
             num_of_files = length(VEL_MAT);
@@ -839,7 +844,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 set(gca,'FontSize',10);
                 set(gca,'XColor',obj.graycolordark,'YColor', obj.graycolordark,'TickDir','out');
                 xlabel('Time (s)', 'Color', 'k');
-                ylabel('[Unit]',Color', 'k');
+                ylabel('[Unit]','Color', 'k');
                 legend({'LinearX [m/s]', 'LinearY [m/s]', 'LinearZ [m/s]', ...
                     'AngularX [rad/s]', 'AngularY [rad/s]', 'AngularZ [rad/s]'});
             
@@ -867,7 +872,12 @@ classdef ROSBagReader < matlab.mixin.Copyable
         function [FIG, PDF, PNG] = ts_plotOdometryData(obj)
             % ts_plotOdometryData plots the velocity data of type nav_msgs/Odometry extracted by calling function extractOdometryData.
             %   ts_plotOdometryData returns the path  of the fig files, pdf files and png files
-
+            
+            if ~isKey(obj.messageDictionary, 'OdometryData')
+                fprintf('No Odometry message found for the given bag file');
+                return;
+            end
+            
             % retreive the name of the OdometryData files
             MAT = obj.messageDictionary('OdometryData');
             num_of_files = length(MAT);
@@ -988,11 +998,14 @@ classdef ROSBagReader < matlab.mixin.Copyable
         function [FIG, PDF, PNG] = ts_plotStandard(obj)
             % ts_plotStandard plots the velocity data of type  standard of 1-D extracted by calling function extractStandard.
             %   ts_plotStandard returns the path  of the fig files, pdf files and png files
-            
-            
-            
+                          
+            if ~isKey(obj.messageDictionary, 'Standard')
+                fprintf('No Standard message found for the given bag file');
+                return;
+            end
+                
             % retreive the name of the VelData files
-            STD_MAT = obj.messageDictionary('Standard');
+           STD_MAT = obj.messageDictionary('Standard');
             num_of_files = length(STD_MAT);
 
             FIG = cell(1,  length(num_of_files));
