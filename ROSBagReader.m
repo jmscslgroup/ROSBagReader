@@ -661,10 +661,12 @@ classdef ROSBagReader < matlab.mixin.Copyable
         
         % Function to extract  Wrench Data and save in the file where
         % rosbag file is located
-        function extractWrenchData(obj)
+        function  [CSV, MAT] = extractWrenchData(obj)
              % extractWrenchData extracts the data of type geometry_msgs/Wrench from the bag file.
             %   extractWrenchData returns the vector of cell array of datafile names.
            
+            CSV  = {};
+            MAT = {};
             
             % Note down the index of Wrench messages from table topic
             % Note that there can be multiple topics of
@@ -681,6 +683,10 @@ classdef ROSBagReader < matlab.mixin.Copyable
             % Now we will iterate over all the topics and retrieve data
             % from every topic of message type geometry_msgs/Wrench
             % and save them in mat format as well as csv format
+            
+            MAT = cell(1,  length(topic_of_wrench));
+            CSV = cell(1,  length(topic_of_wrench));
+            
             for i = 1:length(topic_of_wrench)
                 topic_to_read = topic_of_wrench{i};
                 fprintf('\nReading the Wrench messages on the topic %s\n\n', topic_to_read);
@@ -700,6 +706,8 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 % Now save the retrieved data in the datafolder
                 matfile = strcat(obj.datafolder, topic_to_save,'.mat');
                 
+                MAT{i} = matfile;
+                
                 save(matfile,'wrenchData');
 
                 fprintf('Writing Wrench Data  to file %s from topic %s completed!!\n\n', matfile, topic_to_read);
@@ -709,6 +717,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
                  % Now save the retrieved data in the datafolder in csv
                  % format
                 csvfile = strcat(obj.datafolder, topic_to_save,'.csv');
+                CSV{i} = csvfile;
                  % Support for version older than 2019
                 if contains(version, '2019')
                     writematrix(Data,csvfile,'Delimiter',',');
@@ -894,7 +903,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
 
                 datafile = MAT{i};
                 data = load(datafile);
-                fprintf('(%f) Reading datafile: %s.', i, datafile);
+                fprintf('(%d) Reading datafile: %s.', i, datafile);
                 xPose = cellfun(@(m) double(m.Pose.Pose.Position.X),data.msgStructs);
                 yPose = cellfun(@(m) double(m.Pose.Pose.Position.Y),data.msgStructs);
                 zPose = cellfun(@(m) double(m.Pose.Pose.Position.Z),data.msgStructs);
@@ -1019,7 +1028,7 @@ classdef ROSBagReader < matlab.mixin.Copyable
                 set(f,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)]);
 
                 datafile = STD_MAT{i};
-                fprintf('(%f) Reading datafile: %s.', i, datafile);
+                fprintf('(%d) Reading datafile: %s.', i, datafile);
                 data = load(datafile);
                 plot(data.stdData.Time, data.stdData.Data,  'LineWidth',2,'color',obj.linecolor(i,:));
                 title(STD_MAT{i}, 'FontSize', 10, 'Interpreter','none');
