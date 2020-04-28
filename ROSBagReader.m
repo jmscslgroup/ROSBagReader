@@ -712,7 +712,11 @@ classdef ROSBagReader < matlab.mixin.Copyable
 
                 fprintf('Writing Wrench Data  to file %s from topic %s completed!!\n\n', matfile, topic_to_read);
 
-                Data = string([wrenchData.Time, wrenchData.Data]);
+                Data_Headless = string([wrenchData.Time, wrenchData.Data]);
+                
+                Header = ["Time", "ForceX","ForceY", "ForceZ", "TorqueX", "TorqueY", "TorqueZ"];
+                Data = [Header   ; Data_Headless];
+                
                 
                  % Now save the retrieved data in the datafolder in csv
                  % format
