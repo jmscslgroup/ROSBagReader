@@ -1,5 +1,5 @@
 # ROSBagReader
-__A MATLAB Class to facilitate the reading of rosbag file based on semantic datatypes.__
+__A MATLAB Class to facilitate the reading of a rosbag file based on semantic datatypes.__
 
 __`ROSBagReader`__ is a wrapper class written in MATLAB that provides an easy to use interface for reading [bag files](http://wiki.ros.org/Bags) recorded by `rosbag record` command. This wrapper class uses MATLAB's API `rosbag()`
 internally to perform all operations. One of the interesting features about using __`ROSBagReader`__ is that a user doesn't need to
